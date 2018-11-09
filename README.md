@@ -21,8 +21,8 @@ sudo systemctl enable agv_dual.service
 ```
 shell scripts to start and stop agv service
 
-pi@raspberrypi:~ $ ls -l /usr/sbin/agv*
 ```
+pi@raspberrypi:~ $ ls -l /usr/sbin/agv*
 -rwxr-xr-x 1 root root 2516 Oct  1 03:26 /usr/sbin/agv2-start
 -rwxr-xr-x 1 root root  271 Sep 30 14:30 /usr/sbin/agv2-stop
 -rwxr-xr-x 1 root root 2512 Oct  1 10:12 /usr/sbin/agv_dual-start
