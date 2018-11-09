@@ -1,0 +1,10 @@
+state_run_forward = 0
+state_run_backward  = 2
+state_stop = 1
+state_run_slow = 3
+state_turn_left = 4
+state_turn_right = 5
+state_run_very_slow = 6
+state_run_slow_straight = 7
+state_rotate_ccw = 8
+state_rotate_cw = 9

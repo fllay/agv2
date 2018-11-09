@@ -1,0 +1,131 @@
+
+1;95;0c#!/usr/bin/env python
+# license removed for brevity
+import rospy
+import pigpio
+import constant
+from std_msgs.msg import Int16
+G = [5, 21, 20, 16]
+DIR_BIT = 6
+Bits = [0, 0, 0, 0]
+def getIO():
+    pub = rospy.Publisher('state', Int16, queue_size=100)
+    pub_dir = rospy.Publisher('cam_dir', Int16, queue_size=100)
+    rospy.init_node('controller', anonymous=True)
+    rate = rospy.Rate(40)
+    state = constant.state_stop
+    check_io = 1
+    valCounter = 0
+    count_p = 20
+    pio = pigpio.pi()
+    pio.set_mode(DIR_BIT, pigpio.INPUT)
+    pio.set_mode(23, pigpio.OUTPUT)
+    pio.write(23, 0)
+    for g in G:
+        pio.set_mode(g, pigpio.INPUT)
+
+    
+    while not rospy.is_shutdown():
+        if check_io == 1:
+            #out = 0
+            valCounter = valCounter + 1
+
+            for i in range(0,4):
+                b =  not(pio.read(G[i]))
+                if b == 1:
+                    Bits[i] = Bits[i] + 1
+                else:
+                    Bits[i] = Bits[i] - 1
+        
+            if valCounter == count_p:
+                out = 0
+                valCounter = 0
+                for i in range(0,4):
+                    print Bits[i],
+                    if Bits[i] > count_p*0.9:
+                        b = 1
+                        out = (out << 1) | b
+                    elif Bits[i] < count_p*-0.9:
+                        b = 0
+                        out = (out << 1) | b
+                    else:
+                        out = 10        
+                print out,
+                for i in range(0,4):
+                    Bits[i] = 0
+
+                
+                if out != 0:
+                    print out
+                else:
+                    print ""	
+
+                if pio.read(DIR_BIT) == 1:
+                    pub_dir.publish(1)
+                elif pio.read(DIR_BIT) == 0:
+                    pub_dir.publish(2)
+                    
+                if out == 4:
+                    state = constant.state_turn_left
+                    #print "left"
+                if out == 5:			
+                    state = constant.state_turn_right	
+                    #print "right"
+                if out == 6:
+                    state = constant.state_run_slow
+                if out == 2:
+	            if pio.read(DIR_BIT) == 1:
+                        state = constant.state_run_forward
+	            elif pio.read(DIR_BIT) == 0:
+                        state = constant.state_run_backward
+                if out == 1:
+                    state = constant.state_stop
+                if out == 7:
+                    state = constant.state_run_very_slow
+                if out == 3:
+                    state = constant.state_run_slow_straight			
+                if out == 8:
+                    state = constant.state_rotate_ccw
+                if out == 9:
+                    state = constant.state_rotate_cw
+                    
+                if state == constant.state_turn_left:
+                    print("state_turn_left")
+                    rospy.loginfo("state_turn_left") 
+                elif state == constant.state_turn_right:
+                    print("constant.state_turn_right")
+                    rospy.loginfo("constant.state_turn_right")
+                elif state == constant.state_run_slow:
+                    print("constant.state_run_slow")
+                    rospy.loginfo("constant.state_run_slow")
+                elif state == constant.state_run_forward:
+                    print("constant.state_run_forward")
+                    rospy.loginfo("constant.state_run_forward")
+                elif state == constant.state_run_backward:
+                    print("state_run_backward")
+                    rospy.loginfo("state_run_backward")
+                elif state == constant.state_stop:
+                    print("constant.state_stop")
+                    rospy.loginfo("constant.state_stop")
+                elif state == constant.state_run_very_slow:
+                    print("constant.state_run_very_slow")
+                    rospy.loginfo("constant.state_run_very_slow")
+                elif state == constant.state_run_slow_straight:
+                    print("constant.state_run_slow_straight")
+                    rospy.loginfo("constant.state_run_slow_straight")
+                elif state == constant.state_rotate_ccw:
+                    print("constant.state_rotate_ccw")
+                    rospy.loginfo("constant.state_rotate_ccw")
+                elif state == constant.state_rotate_cw:
+                    print("constabt.state_rotate_cw")
+                    rospy.loginfo("constabt.state_rotate_cw")
+                    
+                pub.publish(state)
+        rate.sleep()
+        
+
+if __name__ == '__main__':
+    try:
+        getIO()
+    except rospy.ROSInterruptException:
+        pass

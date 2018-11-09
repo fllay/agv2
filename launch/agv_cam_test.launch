@@ -1,0 +1,5 @@
+<launch>
+<node pkg="web_video_server" type="web_video_server" name="web_video_server"/>
+<node pkg="agv2" type="line_detector.py" name="line_detector"/>
+</launch>
+
