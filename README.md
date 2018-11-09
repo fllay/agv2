@@ -1,23 +1,24 @@
 List which services are loaed:
 
 pi@raspberrypi:~ $ systemctl list-units --type service
-UNIT                                                        LOAD   ACTIVE SUB     DESCRIPTION                              
+```UNIT                                                        LOAD   ACTIVE SUB     DESCRIPTION                              
 agv_dual.service                                            loaded active running "bringup agv_dual"                       
 alsa-restore.service                                        loaded active exited  Save/Restore Sound Card State            
 avahi-daemon.service                                        loaded active running Avahi mDNS/DNS-SD Stack                  
 binfmt-support.service                                      loaded active exited  Enable support for additional executable 
 bluetooth.service                                           loaded active running Bluetooth service                        
-
+```
 
 To enable single camera:
+```
 sudo systemctl disable agv_dual.service
 sudo systemctl enable agv2.service 
-
+```
 To enable dual camera:
-sudo systemctl disable agv2.service 
+```
+sudo systemctl disable agv2.service
 sudo systemctl enable agv_dual.service
-
-
+```
 shell scripts to start and stop agv service
 
 pi@raspberrypi:~ $ ls -l /usr/sbin/agv*
@@ -43,17 +44,23 @@ function log() {
 log info "agv2: Using workspace setup file /opt/ros/kinetic/setup.bash"
 source /opt/ros/kinetic/setup.bash
 JOB_FOLDER=/etc/ros/kinetic/agv2.d
-
+```
 
 Modify start up launch file (single camera).
+```
 sudo pico /etc/ros/kinetic/agv2.d/agv_single.launch
+```
 Modify start up launch file (dual camera).
+```
 sudo pico /etc/ros/kinetic/agv_dual.d/agv.launch
-
+```
 
 edit service file single camera:
+```
 sudo pico /lib/systemd/system/agv2.service 
+```
 edit service file dual cameras:
+```
 sudo pico /lib/systemd/system/agv_dual.service
 ```
 Content of the service files:
@@ -72,6 +79,8 @@ ExecStart=/usr/sbin/agv_dual-start
 WantedBy=multi-user.target
 ```
 Install agv2 package:
+```
 pi@raspberrypi:~ $ cd ros_catkin_ws/
 pi@raspberrypi:~/ros_catkin_ws $ ./src/catkin/bin/catkin_make_isolated  --pkg agv2 -j2 --install --install-space /opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release
+```
 
