@@ -31,7 +31,7 @@ pi@raspberrypi:~ $ ls -l /usr/sbin/agv*
 
 Content of agv start file:
 
-```
+```sh
 #!/bin/bash
 # THIS IS A GENERATED FILE, NOT RECOMMENDED TO EDIT.
 
@@ -63,8 +63,9 @@ edit service file dual cameras:
 ```
 sudo pico /lib/systemd/system/agv_dual.service
 ```
+
 Content of the service files:
-```
+```sh
 # THIS IS A GENERATED FILE, NOT RECOMMENDED TO EDIT.
 
 [Unit]
@@ -72,7 +73,8 @@ Description="bringup agv_dual"
 After=network.target
 
 [Service]
-Type=idle  <------ need to be set to idle so that it will be loaded after all services are up
+# need to be set to idle so that it will be loaded after all services are up
+Type=idle  
 ExecStart=/usr/sbin/agv_dual-start
 
 [Install]
