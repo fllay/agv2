@@ -19,13 +19,18 @@ sudo systemctl enable agv_dual.service
 
 
 shell scripts to start and stop agv service
+
 pi@raspberrypi:~ $ ls -l /usr/sbin/agv*
+```
 -rwxr-xr-x 1 root root 2516 Oct  1 03:26 /usr/sbin/agv2-start
 -rwxr-xr-x 1 root root  271 Sep 30 14:30 /usr/sbin/agv2-stop
 -rwxr-xr-x 1 root root 2512 Oct  1 10:12 /usr/sbin/agv_dual-start
 -rwxr-xr-x 1 root root  279 Oct  1 10:11 /usr/sbin/agv_dual-stop
+```
 
 Content of agv start file:
+
+```
 #!/bin/bash
 # THIS IS A GENERATED FILE, NOT RECOMMENDED TO EDIT.
 
@@ -50,10 +55,9 @@ edit service file single camera:
 sudo pico /lib/systemd/system/agv2.service 
 edit service file dual cameras:
 sudo pico /lib/systemd/system/agv_dual.service
-
-
+```
 Content of the service files:
-
+```
 # THIS IS A GENERATED FILE, NOT RECOMMENDED TO EDIT.
 
 [Unit]
@@ -66,7 +70,7 @@ ExecStart=/usr/sbin/agv_dual-start
 
 [Install]
 WantedBy=multi-user.target
-
+```
 Install agv2 package:
 pi@raspberrypi:~ $ cd ros_catkin_ws/
 pi@raspberrypi:~/ros_catkin_ws $ ./src/catkin/bin/catkin_make_isolated  --pkg agv2 -j2 --install --install-space /opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release
