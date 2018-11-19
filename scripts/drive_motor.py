@@ -13,8 +13,8 @@ MAX_SPEED = 200000
 SLOW_SPEED = 150000
 SLOW_STRAIGHT_SPEED = 120000
 VERY_SLOW_SPEED = 55000
-LEFT_SPEED = 100000
-RIGHT_SPEED = 100000
+LEFT_SPEED = 200000
+RIGHT_SPEED = 200000
 DIR_PIN_LEFT = 19
 DIR_PIN_RIGHT = 20
 
@@ -346,13 +346,8 @@ def callback(data):
         daccelCount.value = 0
         vdaccelCount.value = 0
         #pid = pidSlow.update(error)	
-        t_counter = t_counter + 1
-        if t_counter < 50:
-            ll_speed = -45000		
-        else:
-            ll_speed = pid
-            #print "turn_keft"
         speed = LEFT_SPEED
+        ll_speed = pid
         lefts = speed + ll_speed
         #print(speed)
         if(lefts < 0):
@@ -371,20 +366,15 @@ def callback(data):
         pio.hardware_PWM(12, 800, lefts)
         pio.write(CLEAR_ROTATION_BIT,0)
     elif(STATE.value == constant.state_turn_right):
-        speed = RIGHT_SPEED
+        
         f_accelCount.value = 0
         b_accelCount.value = 0
         daccelCount.value = 0
         vdaccelCount.value = 0
         t_counter = t_counter + 1
         #pid = pidSlow.update(error)	
-        if t_counter < 50:
-            ll_speed = 45000
-        else:
-            ll_speed = pid
-            #print "turn_right = ",
-            #print t_counter,
-	    
+        speed = RIGHT_SPEED
+        ll_speed = pid
         lefts = speed + ll_speed
         #print(speed)
         if(lefts < 0):
@@ -539,10 +529,12 @@ def parameterCallback(config, level):
         rospy.loginfo("MAX_SPEED_PARAM = %d",  config["maximun_speed"])
         if "maximun_speed" in config:
             maxspeed_param.value = config["maximun_speed"]
+            rospy.loginfo("""Reconfigure Request: {maximun_speed}""".format(**config))
         if "slow_speed" in config:
             slowspeed_param.value = config["slow_speed"]
+            rospy.loginfo("""Reconfigure Request: {slow_speed}""".format(**config))
         #slowspeed_param.value
-        rospy.loginfo("""Reconfigure Request: {maximun_speed}""".format(**config))
+        
         return config
 
 def handle_get_param(req):
@@ -586,10 +578,10 @@ if __name__ == '__main__':
     
     pidc.setPoint(0)
     
-    pidLeft=PID(85.0,0.000001,3500.0)
+    pidLeft=PID(300.0,0.000001,1000.0)
     pidLeft.setPoint(0)
 
-    pidRight=PID(85.0,0.000001,3500.0)
+    pidRight=PID(300.0,0.000001,1000.0)
     pidRight.setPoint(0)
 
     #slow straight

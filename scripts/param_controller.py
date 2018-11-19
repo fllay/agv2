@@ -7,11 +7,15 @@ from std_msgs.msg import Int32
 MAX_SPEED = 200000
 
 def subCallback(data):
-    rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
+    rospy.loginfo(rospy.get_caller_id() + "I heard maxspeed %s", data.data)
     client.update_configuration({"maximun_speed":data.data})
 
+def subCurveSpeedCallback(data):
+    rospy.loginfo(rospy.get_caller_id() + "I heard slow speed %s", data.data)
+    client.update_configuration({"slow_speed":data.data})
+
 def callback(config):
-    rospy.loginfo("Config set to {maximun_speed}".format(**config))
+    rospy.loginfo("Config is called ")
 
 def listener():
 
@@ -23,6 +27,8 @@ def listener():
     rospy.init_node('param_controller', anonymous=True)
 
     rospy.Subscriber("max_speed", Int32, subCallback)
+    rospy.Subscriber("slow_speed", Int32, subCurveSpeedCallback)
+    
     
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()

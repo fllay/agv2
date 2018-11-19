@@ -7,6 +7,7 @@ import rospy
 import IIC
 import constant
 import pigpio
+from multiprocessing import Value
 from std_msgs.msg import String
 from std_msgs.msg import Int16
 from sensor_msgs.msg import Image
@@ -15,6 +16,7 @@ N_SLICES = 5
 NO_LINE = 19
 BLACK = 0
 current_dir = 2
+#state = constant.state_run_forward
 
 def camCallBack(data):
     global current_dir
@@ -22,13 +24,18 @@ def camCallBack(data):
     if(data.data != current_dir):
         iv.camera_change(data.data)
         current_dir = data.data
-        
+def StateCallback(data):
+    rospy.loginfo(rospy.get_caller_id() + 'I heard state %s', data.data)    
+    STATE.value = data.data
+    #rospy.loginfo(rospy.get_caller_id() + 'I heard state %s', STATE.value)
+
 def talker():
     pub = rospy.Publisher('error', Int16, queue_size=10)
     
     pub_inline = rospy.Publisher('inline', Int16, queue_size=10)
     image_pub = rospy.Publisher("/output/image_raw/compressed", CompressedImage, queue_size=10)
     rospy.Subscriber('/cam_dir', Int16, camCallBack)
+    rospy.Subscriber('/state', Int16, StateCallback)
     rospy.init_node('line_detector', anonymous=True)
     rate = rospy.Rate(30) # 10hz
     images = []
@@ -104,7 +111,7 @@ def talker():
 
         # Find the biggest contour (if detected)
     	#print "damn"
-    	#print len(contours)
+    	print len(contours)
         
         if len(contours) > 0:
             #print "Line detected"	
@@ -114,56 +121,85 @@ def talker():
             #	#STATE.value = p_state
             	no_line_status = 0
 
-            
-            c = max(contours, key=cv2.contourArea)
-            approx = cv2.approxPolyDP(c,0.01*cv2.arcLength(c,True),True)
-            rospy.loginfo('number of coners %d', len(approx))  
-            M = cv2.moments(c)
-            area = cv2.contourArea(c)
+           
+            if STATE.value == constant.state_turn_left:
+                largest_contours = sorted(contours, key=cv2.contourArea)[-3:]
+                print "Number of three largest "	
+                print len(largest_contours)
+                errora = []
+                for c in largest_contours:
+                    M = cv2.moments(c)
+                    cx = int(M['m10']/M['m00'])
+                    errora.append(cx  - 320)
+                print(errora)
+                print(min(errora))
+                error = min(errora)
+            elif STATE.value == constant.state_turn_right:
+                largest_contours = sorted(contours, key=cv2.contourArea)[-3:]
+                print "Number of three largest "	
+                print len(largest_contours)
+                errora = []
+                for c in largest_contours:
+                    M = cv2.moments(c)
+                    cx = int(M['m10']/M['m00'])
+                    errora.append(cx  - 320)
+                print(errora)
+                print(max(errora))
+                error = max(errora)
+            else :
+                if len(contours) > 1:
+                    error = perror
+                elif len(contours) == 1:    
+                    c = max(contours, key=cv2.contourArea)
+                    approx = cv2.approxPolyDP(c,0.01*cv2.arcLength(c,True),True)
+                    #rospy.loginfo('number of coners %d', len(approx))  
+                    M = cv2.moments(c)
+                    area = cv2.contourArea(c)
 
-            #print(area)
-            
-            #M = cv2.moments(mask)
- 
-            cx = int(M['m10']/M['m00'])
-            #print cx
-            error = cx  - 320
-            #print "error"
-            #print error
-            perror = error
+                    #print(area)
+                
+                    #M = cv2.moments(mask)
+    
+                    cx = int(M['m10']/M['m00'])
+                    #print cx
+                    error = cx  - 320
+                    #print "error"
+                    #print error
+                    perror = error
 
-            if (len(approx) < 5):
-                no_line_status = 0
-                no_line_counter = 0
-            else:
-                error = perror
-                #print "No line xxx"
-                no_line_counter = no_line_counter + 1
-                #print no_line_counter
-                if no_line_counter > 20:
-                    #p_state = STATE.value
-                    #STATE.value = state_stop
-            
-                    no_line_status = 1
-                    pio.write(NO_LINE, 1)
-                    #print "No line"
-                    rospy.loginfo("No line")
+                    if (len(approx) < 5):
+                        no_line_status = 0
+                        no_line_counter = 0
+                    else:
+                        error = perror
+                        #print "No line xxx"
+                        no_line_counter = no_line_counter + 1
+                        #print no_line_counter
+                        if no_line_counter > 20:
+                            #p_state = STATE.value
+                            #STATE.value = state_stop
+                
+                            no_line_status = 1
+                            pio.write(NO_LINE, 1)
+                            #print "No line"
+                            rospy.loginfo("No line")
 
-            # if (900 < area < 12000):
-            #     no_line_status = 0
-            #     no_line_counter = 0
-            # else:
-            #     error = perror
-            #     #print "No line xxx"
-            #     no_line_counter = no_line_counter + 1
-            #     #print no_line_counter
-            #     if no_line_counter > 20:
-            #         #p_state = STATE.value
-            #         #STATE.value = state_stop
-            
-            #         no_line_status = 1
-            #         pio.write(NO_LINE, 1)
-            #         print "No line"
+                    # if (900 < area < 12000):
+                    #     no_line_status = 0
+                    #     no_line_counter = 0
+                    # else:
+                    #     error = perror
+                    #     #print "No line xxx"
+                    #     no_line_counter = no_line_counter + 1
+                    #     #print no_line_counter
+                    #     if no_line_counter > 20:
+                    #         #p_state = STATE.value
+                    #         #STATE.value = state_stop
+                    
+                    #         no_line_status = 1
+                    #         pio.write(NO_LINE, 1)
+                    #         print "No line"
+
         else:
             error = perror
             no_line_counter = no_line_counter + 1
@@ -209,6 +245,7 @@ if __name__ == '__main__':
     pio = pigpio.pi()
     cam = cv2.VideoCapture(0)
     cam.set(5 , 30) 
+    STATE = Value('i', constant.state_stop)
     try:
         talker()
     except rospy.ROSInterruptException:
