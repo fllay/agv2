@@ -5,18 +5,25 @@ import cv2
 import rospy
 import constant
 import pigpio
+from multiprocessing import Value
 from std_msgs.msg import String
 from std_msgs.msg import Int16
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
 N_SLICES = 5
 NO_LINE = 19
-BLACK = 1
+BLACK = 0
+
+def StateCallback(data):
+    rospy.loginfo(rospy.get_caller_id() + 'I heard state %s', data.data)    
+    STATE.value = data.data
+    #rospy.loginfo(rospy.get_caller_id() + 'I heard state %s', STATE.value)
 
 def talker():
     pub = rospy.Publisher('error', Int16, queue_size=10)
     noline_pub = rospy.Publisher('noline', Int16, queue_size=10)
     image_pub = rospy.Publisher("/output/image_raw/compressed", CompressedImage, queue_size=10)
+    rospy.Subscriber('/state', Int16, StateCallback)
     rospy.init_node('line_detector', anonymous=True)
     rate = rospy.Rate(30) # 10hz
     images = []
@@ -95,44 +102,89 @@ def talker():
     	#print len(contours)
         
         if len(contours) > 0:
-            #print "Line detected"
-            noline_pub.publish(1)
+            #print "Line detected"	
             pio.write(NO_LINE, 0)
+           
+            if STATE.value == constant.state_turn_left:
+                largest_contours = sorted(contours, key=cv2.contourArea)[-3:]
+                print "Number of three largest "	
+                print len(largest_contours)
+                errora = []
+                for c in largest_contours:
+                    M = cv2.moments(c)
+                    cx = int(M['m10']/M['m00'])
+                    errora.append(cx  - 320)
+                print(errora)
+                print(min(errora))
+                error = min(errora)
+            elif STATE.value == constant.state_turn_right:
+                largest_contours = sorted(contours, key=cv2.contourArea)[-3:]
+                print "Number of three largest "	
+                print len(largest_contours)
+                errora = []
+                for c in largest_contours:
+                    M = cv2.moments(c)
+                    cx = int(M['m10']/M['m00'])
+                    errora.append(cx  - 320)
+                print(errora)
+                print(max(errora))
+                error = max(errora)
+            else : 
+                c = max(contours, key=cv2.contourArea)
+                approx = cv2.approxPolyDP(c,0.01*cv2.arcLength(c,True),True)
+                #rospy.loginfo('number of coners %d', len(approx))  
+                M = cv2.moments(c)
+                area = cv2.contourArea(c)
+                print "area = "
+                print(area)
             
-            c = max(contours, key=cv2.contourArea)
-            M = cv2.moments(c)
-            #M = cv2.moments(mask)
-            area = cv2.contourArea(c)
-            #print area
-            cx = int(M['m10']/M['m00'])
-            #print cx
-            error = cx  - 320
-            #print "error"
-            #print error
-            perror = error 
+                #M = cv2.moments(mask)
 
-            if (900 < area < 12000):
-                no_line_status = 0
-                no_line_counter = 0
-                    
-            else:
-                error = perror
-                #print "No line xxx"
-                no_line_counter = no_line_counter + 1
-                #print no_line_counter
-                #noline_pub.publish(0)
-                if no_line_counter > 20:
-                    #p_state = STATE.value
-                    #STATE.value = state_stop
-
-                    no_line_status = 1
-                    pio.write(NO_LINE, 1)
-                    print "No line"
-                    noline_pub.publish(0)
-
+                cx = int(M['m10']/M['m00'])
+                #print cx
+                if len(contours) > 1:
+                    error = perror
+                elif len(contours) == 1:   
+                    error = cx  - 320
                 
+                #print "error"
+                #print error
+                perror = error
 
-    	else:
+                # if (len(approx) < 5):
+                #     no_line_status = 0
+                #     no_line_counter = 0
+                # else:
+                #     error = perror
+                #     #print "No line xxx"
+                #     no_line_counter = no_line_counter + 1
+                #     #print no_line_counter
+                #     if no_line_counter > 20:
+                #         #p_state = STATE.value
+                #         #STATE.value = state_stop
+            
+                #         no_line_status = 1
+                #         pio.write(NO_LINE, 1)
+                #         #print "No line"
+                #         rospy.loginfo("No line")
+
+                if (3000 < area < 12000):
+                    no_line_status = 0
+                    no_line_counter = 0
+                else:
+                    error = perror
+                    #print "No line xxx"
+                    no_line_counter = no_line_counter + 1
+                    #print no_line_counter
+                    if no_line_counter > 20:
+                        #p_state = STATE.value
+                        #STATE.value = state_stop
+                
+                        no_line_status = 1
+                        pio.write(NO_LINE, 1)
+                        print "No line"
+
+        else:
             error = perror
             no_line_counter = no_line_counter + 1
             if no_line_counter > 20:
@@ -142,8 +194,6 @@ def talker():
                 no_line_status = 1
                 pio.write(NO_LINE, 1)
                 print "No line"
-                noline_pub.publish(0)
-
 
 
         #c = max(contours, key=cv2.contourArea)
@@ -169,6 +219,7 @@ if __name__ == '__main__':
     cam = cv2.VideoCapture(0)
     cam.set(5 , 30) 
     pio = pigpio.pi()
+    STATE = Value('i', constant.state_stop)
     try:
         talker()
     except rospy.ROSInterruptException:

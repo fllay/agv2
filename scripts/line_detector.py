@@ -116,11 +116,6 @@ def talker():
         if len(contours) > 0:
             #print "Line detected"	
             pio.write(NO_LINE, 0)
-            if no_line_status == 1:
-            	no_line_counter = 0
-            #	#STATE.value = p_state
-            	no_line_status = 0
-
            
             if STATE.value == constant.state_turn_left:
                 largest_contours = sorted(contours, key=cv2.contourArea)[-3:]
@@ -146,59 +141,60 @@ def talker():
                 print(errora)
                 print(max(errora))
                 error = max(errora)
-            else :
+            else : 
+                c = max(contours, key=cv2.contourArea)
+                approx = cv2.approxPolyDP(c,0.01*cv2.arcLength(c,True),True)
+                #rospy.loginfo('number of coners %d', len(approx))  
+                M = cv2.moments(c)
+                area = cv2.contourArea(c)
+                print "area = "
+                print(area)
+            
+                #M = cv2.moments(mask)
+
+                cx = int(M['m10']/M['m00'])
+                #print cx
                 if len(contours) > 1:
                     error = perror
-                elif len(contours) == 1:    
-                    c = max(contours, key=cv2.contourArea)
-                    approx = cv2.approxPolyDP(c,0.01*cv2.arcLength(c,True),True)
-                    #rospy.loginfo('number of coners %d', len(approx))  
-                    M = cv2.moments(c)
-                    area = cv2.contourArea(c)
-
-                    #print(area)
-                
-                    #M = cv2.moments(mask)
-    
-                    cx = int(M['m10']/M['m00'])
-                    #print cx
+                elif len(contours) == 1:   
                     error = cx  - 320
-                    #print "error"
-                    #print error
-                    perror = error
-
-                    if (len(approx) < 5):
-                        no_line_status = 0
-                        no_line_counter = 0
-                    else:
-                        error = perror
-                        #print "No line xxx"
-                        no_line_counter = no_line_counter + 1
-                        #print no_line_counter
-                        if no_line_counter > 20:
-                            #p_state = STATE.value
-                            #STATE.value = state_stop
                 
-                            no_line_status = 1
-                            pio.write(NO_LINE, 1)
-                            #print "No line"
-                            rospy.loginfo("No line")
+                #print "error"
+                #print error
+                perror = error
 
-                    # if (900 < area < 12000):
-                    #     no_line_status = 0
-                    #     no_line_counter = 0
-                    # else:
-                    #     error = perror
-                    #     #print "No line xxx"
-                    #     no_line_counter = no_line_counter + 1
-                    #     #print no_line_counter
-                    #     if no_line_counter > 20:
-                    #         #p_state = STATE.value
-                    #         #STATE.value = state_stop
-                    
-                    #         no_line_status = 1
-                    #         pio.write(NO_LINE, 1)
-                    #         print "No line"
+                # if (len(approx) < 5):
+                #     no_line_status = 0
+                #     no_line_counter = 0
+                # else:
+                #     error = perror
+                #     #print "No line xxx"
+                #     no_line_counter = no_line_counter + 1
+                #     #print no_line_counter
+                #     if no_line_counter > 20:
+                #         #p_state = STATE.value
+                #         #STATE.value = state_stop
+            
+                #         no_line_status = 1
+                #         pio.write(NO_LINE, 1)
+                #         #print "No line"
+                #         rospy.loginfo("No line")
+
+                if (3000 < area < 12000):
+                    no_line_status = 0
+                    no_line_counter = 0
+                else:
+                    error = perror
+                    #print "No line xxx"
+                    no_line_counter = no_line_counter + 1
+                    #print no_line_counter
+                    if no_line_counter > 20:
+                        #p_state = STATE.value
+                        #STATE.value = state_stop
+                
+                        no_line_status = 1
+                        pio.write(NO_LINE, 1)
+                        print "No line"
 
         else:
             error = perror
