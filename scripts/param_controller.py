@@ -4,7 +4,7 @@ import rospy
 import dynamic_reconfigure.client
 from std_msgs.msg import Int32
 
-MAX_SPEED = 200000
+MAX_SPEED = 700000
 
 def subCallback(data):
     rospy.loginfo(rospy.get_caller_id() + "I heard maxspeed %s", data.data)

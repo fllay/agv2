@@ -61,7 +61,7 @@ def talker():
         if(BLACK == 1):
             y = cv2.bitwise_not(y)
         up_th = int(np.amax(y))
-        low_th = int(0.55*up_th)
+        low_th = int(0.7*up_th)
         #print up_th
         #print low_th
         # Gaussian blur

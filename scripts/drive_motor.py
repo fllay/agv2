@@ -9,7 +9,7 @@ from dynamic_reconfigure.server import Server
 from agv2.cfg import agv2Config
 from agv2.srv import *
 
-MAX_SPEED = 500000
+MAX_SPEED = 700000
 SLOW_SPEED = 150000
 SLOW_STRAIGHT_SPEED = 200000
 VERY_SLOW_SPEED = 55000
@@ -432,8 +432,7 @@ def callback(data):
         pio.hardware_PWM(13, 800, 40000)
         #left motor
         pio.hardware_PWM(12, 800, 40000)
-ฃ
-        
+     
     elif(STATE.value == constant.state_rotate_cw):
 
         pio.hardware_PWM(13, 800, 40000)
@@ -518,6 +517,7 @@ if __name__ == '__main__':
 
     #MAX_ROTATION_COUNT = rospy.get_param('/drive_motor/rotationVal')
     #MAX_SPEED = rospy.get_param('/drive_motor/maxSpeed')
+    
     STATE = Value('i', constant.state_stop)
     CAM_DIR = Value('i', 1)
     f_accelCount = Value('i', 0)
@@ -529,6 +529,7 @@ if __name__ == '__main__':
     rotationCount = Value('i',0)
     maxspeed_param = Value('i',MAX_SPEED)
     slowspeed_param = Value('i',SLOW_SPEED)
+    maxspeed_param.value = MAX_SPEED
     carType = Value('i', 0)  #small car = 0 large car = 1
     pio = pigpio.pi()
     pio.set_mode(CLEAR_ROTATION_BIT, pigpio.OUTPUT)

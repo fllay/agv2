@@ -2,6 +2,24 @@ Vietnam Command summary agv projects:
 
 List which services are loaed:
 
+Edit speed 
+```
+pico cfg/agv2.cfg
+
+#!/usr/bin/env python
+PACKAGE = "drive_motor"
+
+from dynamic_reconfigure.parameter_generator_catkin import *
+
+gen = ParameterGenerator()
+ 
+gen.add("rotation_count",    int_t,    0, "90 degree rotation count", 85,  10, 200)
+gen.add("maximun_speed",    int_t,    0, "Maximum speed", 700000,  10000, 800000)
+gen.add("slow_speed",    int_t,    0, "Maximum speed", 150000,  10000, 800000)
+exit(gen.generate(PACKAGE, "drive_motor", "agv2"))
+
+```
+
 pi@raspberrypi:~ $ systemctl list-units --type service
 ```UNIT                                                        LOAD   ACTIVE SUB     DESCRIPTION                              
 agv_dual.service                                            loaded active running "bringup agv_dual"                       
