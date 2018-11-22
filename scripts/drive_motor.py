@@ -9,17 +9,17 @@ from dynamic_reconfigure.server import Server
 from agv2.cfg import agv2Config
 from agv2.srv import *
 
-MAX_SPEED = 200000
+MAX_SPEED = 500000
 SLOW_SPEED = 150000
-SLOW_STRAIGHT_SPEED = 120000
+SLOW_STRAIGHT_SPEED = 200000
 VERY_SLOW_SPEED = 55000
-LEFT_SPEED = 200000
-RIGHT_SPEED = 200000
+LEFT_SPEED = 150000
+RIGHT_SPEED = 150000
 DIR_PIN_LEFT = 19
 DIR_PIN_RIGHT = 20
 
 CLEAR_ROTATION_BIT = 26
-MAX_ROTATION_COUNT = 90
+MAX_ROTATION_COUNT = 55
 #CLEAR_ROTATION_BIT = 0
 
 #CAM_DIR = 1
@@ -429,94 +429,17 @@ def callback(data):
         t_counter = 0
 
     elif(STATE.value == constant.state_rotate_ccw):
-
-        print "CW !!!!!!!!!!!!!!!!!!!!!!!"
-        rospy.loginfo("CCW!!!!!!")
-        pio.hardware_PWM(13, 800, 0)
+        pio.hardware_PWM(13, 800, 40000)
         #left motor
-        pio.hardware_PWM(12, 800, 0)
-        #if carType.Value == 'Car_test':
-        """pio.write(DIR_PIN_LEFT,0)
-    	pio.write(DIR_PIN_RIGHT,0)"""
-        rotatingDir.value = 0
-        isRotating.value = 1
-        stopSignal = 0
-        #for x in range(70):
-        while rotationCount.value < MAX_ROTATION_COUNT:
-                if STATE.value == constant.state_stop:
-                        rotationCount.value = rotationCount.value - 10
-                        stopSignal = 1
-                        break
-                elif STATE.value != constant.state_rotate_ccw:
-                        break
-                else:
-                        pio.hardware_PWM(13, 800, 40000)
-                        #left motor
-                        pio.hardware_PWM(12, 800, 40000)
-                sleep(0.1)
-                print(rotationCount.value)
-                rotationCount.value  += 1
-        if rotationCount.value == MAX_ROTATION_COUNT:
-                pio.write(CLEAR_ROTATION_BIT,1)
-                print("Clear")
-                sleep(2)
-        if stopSignal == 0:
-                rotationCount.value = 0
-                isRotating.value = 0
-        elif stopSignal == 1:
-                isRotating.value = 1
-        pio.hardware_PWM(13, 800, 0)
-        #left motor
-        pio.hardware_PWM(12, 800, 0)
-        
-                
-        
-        STATE.value = constant.state_stop
+        pio.hardware_PWM(12, 800, 40000)
+ฃ
         
     elif(STATE.value == constant.state_rotate_cw):
-        print "CW !!!!!!!!!!!!!!!!!!!!!!!"
-        rospy.loginfo("CW!!!!!!")
-        pio.hardware_PWM(13, 800, 0)
+
+        pio.hardware_PWM(13, 800, 40000)
         #left motor
-        pio.hardware_PWM(12, 800, 0)
-        #if carType.Value == 'Car_test':
-        """pio.write(DIR_PIN_LEFT,1)
-        pio.write(DIR_PIN_RIGHT,1)"""
-        rotatingDir.value = 1
-        isRotating.value = 1
-        stopSignal = 0
-        #for x in range(70):
-        
-        while rotationCount.value < MAX_ROTATION_COUNT:
-                if STATE.value == constant.state_stop:
-                        stopSignal = 1
-                        rotationCount.value = rotationCount.value - 10
-                        break
-                elif STATE.value != constant.state_rotate_cw:
-                        break
-                else:
-                        stopSignal = 0
-                        pio.hardware_PWM(13, 800, 40000)
-                        #left motor
-                        pio.hardware_PWM(12, 800, 40000)
-                sleep(0.1)
-                print(rotationCount.value)
-                rotationCount.value += 1
-        if rotationCount.value == MAX_ROTATION_COUNT:
-                pio.write(CLEAR_ROTATION_BIT,1)
-                print("Clear ")
-                sleep(2)
-        if stopSignal == 0:
-                isRotating.value = 0
-                rotationCount.value = 0
-        elif stopSignal == 1:
-                isRotating.value = 1
-        pio.hardware_PWM(13, 800, 0)
-        #left motor
-        pio.hardware_PWM(12, 800, 0)
-                
-                                
-        STATE.value = constant.state_stop
+        pio.hardware_PWM(12, 800, 40000)
+
         
     else:
         pio.hardware_PWM(13, 800, 0)
@@ -566,22 +489,22 @@ def listener():
 if __name__ == '__main__':
 
     #PID 300000 450
-    pidSlow=PID(450.0,0.00001,1000.0)
+    pidSlow=PID(350.0,0.00001,1000.0)
     pidSlow.setPoint(0)
 
     #PID 710000
     #pidc=PID(500.0,0.000001,8900.0)  #150000
 
     #pidc=PID(85, 0.000001, 1750) #200000
-    pidc=PID(300, 0.000001, 1000) #200000
+    pidc=PID(85, 0.000001, 1750) #200000
     #pidc=PID(1000, 15, 35000)
     
     pidc.setPoint(0)
     
-    pidLeft=PID(300.0,0.000001,1000.0)
+    pidLeft=PID(120.0,0.000001,2000.0)
     pidLeft.setPoint(0)
 
-    pidRight=PID(300.0,0.000001,1000.0)
+    pidRight=PID(120.0,0.000001,2000.0)
     pidRight.setPoint(0)
 
     #slow straight
@@ -590,7 +513,7 @@ if __name__ == '__main__':
 
 
     #PID very slow  
-    pidVerySlow = PID(100.0,0.000001,1750.0)
+    pidVerySlow = PID(85.0,0.000001,1750.0)
     pidVerySlow.setPoint(0)
 
     #MAX_ROTATION_COUNT = rospy.get_param('/drive_motor/rotationVal')
